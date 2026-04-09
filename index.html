@@ -1,0 +1,378 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Kinerja Program Kerja OSIS</title>
+    <!-- Tailwind CSS untuk styling yang minimalis dan aesthetic -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .step-container { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .step-container.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom scrollbar untuk estetika */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Animasi untuk sub-bidang dropdown */
+        .sub-bidang-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-top 0.3s ease-out;
+            opacity: 0;
+            margin-top: 0;
+        }
+        .sub-bidang-container.show {
+            max-height: 150px; /* Cukup untuk menampung dropdown */
+            opacity: 1;
+            margin-top: 1rem; /* setara dengan mt-4 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 py-8 px-4 sm:px-6 lg:px-8 flex flex-col">
+
+    <!-- Wrapper utama form -->
+    <div class="max-w-3xl mx-auto w-full flex-grow">
+        
+        <!-- Header / Judul Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+            <!-- Aksen Garis Biru -->
+            <div class="h-3 bg-blue-600 w-full"></div>
+            <div class="p-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">Laporan Kinerja Program Kerja OSIS</h1>
+                <p class="text-slate-500">Formulir ini diisi oleh anggota MPK untuk memantau progress, kendala, dan solusi dari program kerja OSIS yang sedang berjalan.</p>
+                <div class="mt-4 text-sm text-blue-600 font-medium">
+                    Tahap <span id="current-step-display">1</span> dari 4
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                    <div id="progress-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: 25%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Element -->
+        <form id="laporanForm" name="submit-to-google-sheet">
+            
+            <!-- Hidden input untuk menangkap gabungan Sekbid & Sub-bidang -->
+            <input type="hidden" id="final_bidang" name="bidang" value="">
+
+            <!-- PAGE 1: Identitas -->
+            <div id="step1" class="step-container active">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-6">
+                    <h2 class="text-xl font-semibold text-slate-800 border-b pb-4">Data Pemantau (MPK)</h2>
+                    
+                    <!-- Input Nama -->
+                    <div class="space-y-2">
+                        <label for="nama" class="block text-sm font-medium text-slate-700">Nama Anggota MPK <span class="text-red-500">*</span></label>
+                        <select id="nama" name="nama" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white">
+                            <option value="" disabled selected>Pilih nama Anda...</option>
+                            <option value="RAFIF ARYA GELARNAPATI">RAFIF ARYA GELARNAPATI</option>
+                            <option value="KAMILIA NAZWA MUTHMAINAH">KAMILIA NAZWA MUTHMAINAH</option>
+                            <option value="AYU SRI ANDINI">AYU SRI ANDINI</option>
+                            <option value="LUNA REVITA SARI">LUNA REVITA SARI</option>
+                            <option value="ALLIN ANZAINI">ALLIN ANZAINI</option>
+                            <option value="RAFAEL DIAZ">RAFAEL DIAZ</option>
+                            <option value="RENHAT BALAGALUGU">RENHAT BALAGALUGU</option>
+                            <option value="SYAHLA DEWI KAMILLA">SYAHLA DEWI KAMILLA</option>
+                            <option value="NESYA AULIA">NESYA AULIA</option>
+                            <option value="LUTFIA NAFSYA MAWADDA">LUTFIA NAFSYA MAWADDA</option>
+                            <option value="MUHAMMAD WILDZAN PUTRA PRATAMA">MUHAMMAD WILDZAN PUTRA PRATAMA</option>
+                            <option value="RIFKI ALYASIN">RIFKI ALYASIN</option>
+                            <option value="ANJANI ANGGITA PUTRI">ANJANI ANGGITA PUTRI</option>
+                            <option value="NURUL SASKIYA">NURUL SASKIYA</option>
+                            <option value="HARFA ALIF ARDIANSYAH">HARFA ALIF ARDIANSYAH</option>
+                            <option value="ARGA TRIYASPURA D">ARGA TRIYASPURA D</option>
+                        </select>
+                    </div>
+
+                    <!-- Input Bidang Utama -->
+                    <div class="space-y-2">
+                        <label for="bidang_utama" class="block text-sm font-medium text-slate-700">Bidang yang Ditugaskan <span class="text-red-500">*</span></label>
+                        <select id="bidang_utama" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white" onchange="checkSubBidang(this.value)">
+                            <option value="" disabled selected>Pilih Bidang...</option>
+                            <option value="SEKBID 1">SEKBID 1: PEMBENTUKAN KARAKTER BERBANGSA DAN BERNEGARA DENGAN SADAR HUKUM</option>
+                            <option value="SEKBID 2">SEKBID 2: PENGEMBANGAN KEILMIAHAN DAN AKADEMIK</option>
+                            <option value="SEKBID 3">SEKBID 3: EKONOMI DAN KEWIRAUSAHAAN</option>
+                            <option value="SEKBID 4">SEKBID 4: KETERAMPILAN MINAT BAKAT DAN DAYA KREASI</option>
+                            <option value="SEKBID 5">SEKBID 5: MEDIA INFORMASI DAN KOMUNIKASI</option>
+                        </select>
+                    </div>
+
+                    <!-- Input Sub-Bidang (Hanya muncul jika SEKBID 1 dipilih) -->
+                    <div id="sub_bidang_container" class="sub-bidang-container space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <label for="sub_bidang" class="block text-sm font-medium text-blue-800">Pilih Sub-Bidang FPSH <span class="text-red-500">*</span></label>
+                        <select id="sub_bidang" class="w-full px-4 py-3 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white">
+                            <option value="" disabled selected>Pilih Sub-Bidang...</option>
+                            <option value="ORGANISASI DAN HUKUM (FPSH)">1. ORGANISASI DAN HUKUM (FPSH)</option>
+                            <option value="HUMAS DAN KERJA SAMA (FPSH)">2. HUMAS DAN KERJA SAMA (FPSH)</option>
+                            <option value="PEMBINAAN PENDIDIKAN MENTAL DAN SPIRITUAL (FPSH)">3. PEMBINAAN PENDIDIKAN MENTAL DAN SPIRITUAL (FPSH)</option>
+                            <option value="KOMUNIKASI, TEKNOLOGI DAN INFORMASI (FPSH)">4. KOMUNIKASI, TEKNOLOGI DAN INFORMASI (FPSH)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 2: Progress -->
+            <div id="step2" class="step-container">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-6">
+                    <h2 class="text-xl font-semibold text-slate-800 border-b pb-4">Progress Program Kerja</h2>
+                    
+                    <div class="space-y-2">
+                        <label for="progress" class="block text-sm font-medium text-slate-700">Bagaimana progress program kerja yang sedang berjalan? <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-slate-500 mb-2">Jelaskan secara keseluruhan atau sebutkan secara spesifik per-program.</p>
+                        <textarea id="progress" name="progress" rows="5" placeholder="Contoh: Secara keseluruhan berjalan baik. Program Class Meeting sudah tahap persiapan 80%..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 3: Kendala -->
+            <div id="step3" class="step-container">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-8">
+                    <h2 class="text-xl font-semibold text-slate-800 border-b pb-4">Kendala Program Kerja</h2>
+                    
+                    <!-- Kendala Keseluruhan -->
+                    <div class="space-y-2">
+                        <label for="kendala_umum" class="block text-sm font-medium text-slate-700">Kendala apa yang dialami program kerja yang sedang berjalan? (Keseluruhan) <span class="text-red-500">*</span></label>
+                        <textarea id="kendala_umum" name="kendala_umum" rows="4" placeholder="Jelaskan kendala secara garis besar..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"></textarea>
+                    </div>
+
+                    <!-- Program Berkendala (Opsional) -->
+                    <div class="p-5 bg-slate-50 border border-slate-200 rounded-lg space-y-4">
+                        <h3 class="text-md font-medium text-slate-700 flex items-center gap-2">
+                            Program Berkendala <span class="text-xs px-2 py-1 bg-slate-200 text-slate-600 rounded-md">Opsional / Spesifik</span>
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <label for="nama_program_kendala" class="block text-sm text-slate-600">Nama Program</label>
+                            <input type="text" id="nama_program_kendala" name="nama_program_kendala" placeholder="Misal: Pensi Tahunan" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="kendala_spesifik" class="block text-sm text-slate-600">Kendala yang Dialami</label>
+                            <textarea id="kendala_spesifik" name="kendala_spesifik" rows="3" placeholder="Sebutkan detail kendala program di atas..." class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 4: Solusi -->
+            <div id="step4" class="step-container">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-6">
+                    <h2 class="text-xl font-semibold text-slate-800 border-b pb-4">Solusi Penanganan</h2>
+                    
+                    <div class="space-y-2">
+                        <label for="solusi" class="block text-sm font-medium text-slate-700">Solusi untuk program yang berkendala</label>
+                        <p class="text-xs text-slate-500 mb-2">Kosongkan jika belum ada / tidak ada kendala.</p>
+                        <textarea id="solusi" name="solusi" rows="5" placeholder="Tuliskan saran atau solusi pemecahan masalah di sini..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 5: Penutup (Success Message - Hidden initially) -->
+            <div id="step5" class="step-container text-center py-12 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">Terima Kasih!</h2>
+                <p class="text-slate-600 mb-8 max-w-lg mx-auto">Terima kasih sudah mengisi Laporan Kinerja Program Kerja OSIS. Data yang Anda masukkan telah berhasil dicatat dan akan menjadi bahan evaluasi bersama untuk mewujudkan program OSIS yang lebih baik.</p>
+                <button type="button" onclick="location.reload()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Isi Laporan Baru</button>
+            </div>
+
+            <!-- Navigasi Buttons -->
+            <div id="button-container" class="mt-6 flex justify-between items-center">
+                <button type="button" id="prevBtn" onclick="nextPrev(-1)" class="hidden px-6 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-slate-200 outline-none">
+                    Kembali
+                </button>
+                <div class="flex-grow"></div>
+                <button type="button" id="nextBtn" onclick="nextPrev(1)" class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-300 outline-none flex items-center gap-2">
+                    Selanjutnya
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                
+                <!-- Loading indicator (hidden by default) -->
+                <button type="button" id="loadingBtn" class="hidden px-6 py-2.5 bg-blue-400 text-white font-medium rounded-lg cursor-not-allowed flex items-center gap-2" disabled>
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Mengirim...
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Footnote -->
+    <footer class="mt-12 mb-6 text-center text-slate-400 text-xs">
+        <p>This website is made for OSKA SMAN 1 CIPATAT by <span class="text-blue-500 font-semibold">@hvrf.vlidam</span></p>
+    </footer>
+
+    <!-- Script Logika Navigasi & Submit Form -->
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        showStep(currentStep);
+
+        // FUNGSI UNTUK MENGATUR DROPDOWN SUB-BIDANG
+        function checkSubBidang(val) {
+            const container = document.getElementById('sub_bidang_container');
+            const subInput = document.getElementById('sub_bidang');
+            
+            if(val === 'SEKBID 1') {
+                container.classList.add('show');
+                subInput.setAttribute('required', 'required'); // Wajib isi jika sekbid 1
+            } else {
+                container.classList.remove('show');
+                subInput.removeAttribute('required'); // Tidak wajib isi jika bukan sekbid 1
+                subInput.value = ""; // Reset value
+            }
+        }
+
+        // Fungsi menyatukan nilai bidang & sub bidang untuk Spreadsheet
+        function formatBidangFinal() {
+            const bidangUtama = document.getElementById('bidang_utama').value;
+            const subBidang = document.getElementById('sub_bidang').value;
+            const finalInput = document.getElementById('final_bidang');
+
+            if(bidangUtama === 'SEKBID 1' && subBidang !== '') {
+                finalInput.value = bidangUtama + ' - ' + subBidang;
+            } else {
+                finalInput.value = bidangUtama;
+            }
+        }
+
+        function showStep(n) {
+            let steps = document.getElementsByClassName("step-container");
+            for (let i = 0; i < steps.length; i++) {
+                steps[i].classList.remove("active");
+            }
+            
+            document.getElementById("step" + n).classList.add("active");
+
+            if (n <= totalSteps) {
+                document.getElementById("current-step-display").innerText = n;
+                document.getElementById("progress-bar").style.width = ((n / totalSteps) * 100) + "%";
+            }
+
+            if (n == 1 || n > totalSteps) {
+                document.getElementById("prevBtn").classList.add("hidden");
+            } else {
+                document.getElementById("prevBtn").classList.remove("hidden");
+            }
+
+            let nextBtn = document.getElementById("nextBtn");
+            if (n == totalSteps) {
+                nextBtn.innerHTML = 'Kirim Laporan <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>';
+                nextBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                nextBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else if (n < totalSteps) {
+                nextBtn.innerHTML = 'Selanjutnya <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>';
+                nextBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                nextBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            }
+
+            if (n > totalSteps) {
+                document.querySelector('.bg-white.rounded-xl.mb-6').style.display = 'none'; 
+                document.getElementById("button-container").style.display = 'none'; 
+            }
+        }
+
+        function nextPrev(n) {
+            if (n == 1 && !validateForm()) return false;
+            
+            if (currentStep === totalSteps && n === 1) {
+                formatBidangFinal(); // Set value akhir bidang sebelum submit
+                submitFormToGoogleSheets();
+                return;
+            }
+
+            currentStep = currentStep + n;
+            showStep(currentStep);
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function validateForm() {
+            let valid = true;
+            let currentTab = document.getElementById("step" + currentStep);
+            // Ambil semua element yang required dan sedang "terlihat" atau tidak punya parent yang di hide
+            let inputs = currentTab.querySelectorAll("input[required], select[required], textarea[required]");
+            
+            let oldErrors = currentTab.querySelectorAll(".error-msg");
+            oldErrors.forEach(err => err.remove());
+
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].classList.remove("border-red-500");
+                
+                // Cek jika field kosong
+                if (inputs[i].value == "") {
+                    inputs[i].classList.add("border-red-500");
+                    let errorMsg = document.createElement('p');
+                    errorMsg.className = "error-msg text-red-500 text-xs mt-1";
+                    errorMsg.innerText = "Kolom ini wajib diisi.";
+                    inputs[i].parentNode.appendChild(errorMsg);
+                    valid = false;
+                }
+            }
+            return valid;
+        }
+
+        // ==========================================
+        // FUNGSI SUBMIT KE GOOGLE SPREADSHEETS
+        // ==========================================
+        
+        // GANTI LINK INI DENGAN LINK WEB APP GOOGLE APPS SCRIPT ANDA NANTI!
+        const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'; 
+
+        function submitFormToGoogleSheets() {
+            const form = document.forms['submit-to-google-sheet'];
+            
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('prevBtn').classList.add('hidden');
+            document.getElementById('loadingBtn').classList.remove('hidden');
+            document.getElementById('loadingBtn').classList.add('flex');
+
+            if(scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                console.warn("Link Google Script belum diisi! Menjalankan simulasi loading sukses...");
+                setTimeout(() => {
+                    currentStep++;
+                    showStep(currentStep);
+                }, 1500);
+                return;
+            }
+
+            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+                .then(response => {
+                    console.log('Success!', response);
+                    currentStep++;
+                    showStep(currentStep);
+                })
+                .catch(error => {
+                    console.error('Error!', error.message);
+                    alert("Terjadi kesalahan saat mengirim data. Pastikan koneksi internet stabil.");
+                    document.getElementById('loadingBtn').classList.add('hidden');
+                    document.getElementById('loadingBtn').classList.remove('flex');
+                    document.getElementById('nextBtn').classList.remove('hidden');
+                    document.getElementById('prevBtn').classList.remove('hidden');
+                });
+        }
+    </script>
+</body>
+</html>
+
+```
